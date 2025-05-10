@@ -53,6 +53,7 @@ const HomePage = () => {
 
   const handleShare = async () => {
     console.log("📸 Generating screenshot...");
+    console.log("🧪 Rebuild test");
 
     if (!resultRef.current) return;
     const canvas = await html2canvas(resultRef.current);
