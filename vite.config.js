@@ -7,30 +7,23 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'icon-192x192.png', 'icon-512x512.png'],
+      includeAssets: ['favicon.svg', 'robots.txt'],
       manifest: {
-        name: 'احسب كم صرفت؟',
-        short_name: 'صرفك',
-        description: 'اكتشف كم صرفت في حياتك',
-        lang: 'ar',
-        start_url: '/',
+        name: 'How Much Have You Spent?',
+        short_name: 'Spent?',
+        description: 'Track how much you’ve spent in your life!',
+        theme_color: '#ffffff',
+        background_color: '#ffffff',
         display: 'standalone',
-        background_color: '#111827',
-        theme_color: '#111827',
+        start_url: '/',
         icons: [
           {
-            src: 'icon-192x192.png',
+            src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: 'icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-        ],
-      },
-    }),
-  ],
+            type: 'image/png'
+          }
+        ]
+      }
+    })
+  ]
 });
- 
