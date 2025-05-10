@@ -18,9 +18,9 @@ const ResultPage = () => {
           const format = (val) =>
             parseFloat(val).toLocaleString("ar-EG") + " ريال";
           setResult({
-            total: format(data.result.total),
-            yearly: format(data.result.yearly),
-            monthly: format(data.result.monthly),
+            total: format(data.total),
+            yearly: format(data.yearly),
+            monthly: format(data.monthly),
           });
         } else {
           setResult("not-found");
