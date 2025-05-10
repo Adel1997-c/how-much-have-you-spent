@@ -1,21 +1,51 @@
-import React, { useState, useRef } from "react";
-import { db } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
-import { v4 as uuidv4 } from "uuid";
+import React, { useState } from "react";
+
+const translations = {
+  ar: {
+    title: "احسب كم صرفت في حياتك",
+    agePlaceholder: "عمرك (بالسنوات)",
+    dailyTitle: "🕐 مصاريفك اليومية التقريبية",
+    coffeeTitle: "☕ القهوة اليومية التقريبية",
+    fastFoodTitle: "🍔 الوجبات السريعة الأسبوعية التقريبية",
+    subsTitle: "📺 الاشتراكات الشهرية التقريبية",
+    calcBtn: "احسب الآن",
+    resultTitle: "📊 المجموع:",
+    yearly: "📆 سنوياً:",
+    monthly: "📅 شهرياً:",
+    addMore: "+ إضافة أخرى",
+    label: "ريال",
+    toggleLang: "English",
+  },
+  en: {
+    title: "How Much Have You Spent in Your Life?",
+    agePlaceholder: "Your age (in years)",
+    dailyTitle: "🕐 Daily approximate spending",
+    coffeeTitle: "☕ Daily coffee cups",
+    fastFoodTitle: "🍔 Weekly fast food meals",
+    subsTitle: "📺 Monthly subscriptions",
+    calcBtn: "Calculate Now",
+    resultTitle: "📊 Total:",
+    yearly: "📆 Yearly:",
+    monthly: "📅 Monthly:",
+    addMore: "+ Add More",
+    label: "SAR",
+    toggleLang: "العربية",
+  },
+};
 
 const HomePage = () => {
+  const [lang, setLang] = useState("ar");
   const [age, setAge] = useState("");
   const [dailyExpenses, setDailyExpenses] = useState([0]);
   const [coffees, setCoffees] = useState([0]);
   const [fastFoods, setFastFoods] = useState([0]);
   const [subscriptions, setSubscriptions] = useState([0]);
   const [result, setResult] = useState(null);
-  const resultRef = useRef(null);
 
-  const handleAdd = (setter, state) => {
-    setter([...state, 0]);
-  };
+  const t = translations[lang];
+  const dir = lang === "ar" ? "rtl" : "ltr";
 
+  const handleAdd = (setter, state) => setter([...state, 0]);
   const handleRemove = (setter, state, index) => {
     if (state.length > 1) {
       const updated = [...state];
@@ -23,7 +53,6 @@ const HomePage = () => {
       setter(updated);
     }
   };
-
   const handleChange = (setter, state, index, value) => {
     const updated = [...state];
     updated[index] = parseFloat(value) || 0;
@@ -32,7 +61,6 @@ const HomePage = () => {
 
   const calculate = () => {
     const years = parseFloat(age || 0);
-
     const totalDaily = dailyExpenses.reduce((a, b) => a + b, 0) * 365 * years;
     const totalCoffee = coffees.reduce((a, b) => a + b, 0) * 8 * 365 * years;
     const totalFastFood = fastFoods.reduce((a, b) => a + b, 0) * 20 * 52 * years;
@@ -43,106 +71,75 @@ const HomePage = () => {
     const monthly = yearly / 12 || 0;
 
     if (total > 0) {
-      setResult({
-        total: total.toLocaleString("ar-EG") + " ريال",
-        yearly: yearly.toLocaleString("ar-EG") + " ريال",
-        monthly: monthly.toLocaleString("ar-EG") + " ريال",
-      });
+      setResult({ total, yearly, monthly });
     } else {
       setResult(null);
     }
   };
 
-  const handleShare = async () => {
-    if (!result) return;
-
-    const id = uuidv4();
-    const ref = doc(db, "results", id);
-
-    await setDoc(ref, {
-      result: {
-        total: parseFloat(result.total.replace(/[^0-9.]/g, "")),
-        yearly: parseFloat(result.yearly.replace(/[^0-9.]/g, "")),
-        monthly: parseFloat(result.monthly.replace(/[^0-9.]/g, "")),
-      },
-    });
-
-    const link = `${window.location.origin}/result/${id}`;
-    await navigator.clipboard.writeText(link);
-    alert(`✅ تم نسخ الرابط للمشاركة:\n\n${link}`);
-  };
-
-  const renderInputGroup = (title, values, setter, unit, label) => (
+  const renderInputGroup = (title, values, setter) => (
     <div className="mb-4">
-      <h2 className="text-right font-semibold mb-2 text-yellow-400">{title}</h2>
+      <h2 className="font-semibold mb-2 text-yellow-400">{title}</h2>
       {values.map((val, i) => (
         <div key={i} className="flex gap-2 mb-2">
           <input
             type="number"
-            className="flex-1 p-2 rounded bg-gray-800 text-white text-right"
-            placeholder={`${label} (${unit})`}
+            className="flex-1 p-2 rounded bg-gray-800 text-white"
+            placeholder={t.label}
             value={val}
             onChange={(e) => handleChange(setter, values, i, e.target.value)}
+            dir={dir}
           />
           <button
             onClick={() => handleRemove(setter, values, i)}
             className="bg-red-600 px-3 rounded hover:bg-red-700"
-          >
-            ✕
-          </button>
+          >✕</button>
         </div>
       ))}
-      <button
-        onClick={() => handleAdd(setter, values)}
-        className="text-sm text-blue-400 hover:underline"
-      >
-        + إضافة أخرى
+      <button onClick={() => handleAdd(setter, values)} className="text-sm text-blue-400 hover:underline">
+        {t.addMore}
       </button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-6 text-yellow-300">
-        احسب كم صرفت في حياتك
-      </h1>
+    <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center justify-center" dir={dir}>
+      <button
+        onClick={() => setLang(lang === "ar" ? "en" : "ar")}
+        className="absolute top-4 right-4 px-3 py-1 bg-gray-700 rounded"
+      >
+        {t.toggleLang}
+      </button>
 
-      <div className="w-full max-w-md text-right">
+      <h1 className="text-3xl font-bold mb-6 text-yellow-300 text-center">{t.title}</h1>
+
+      <div className="w-full max-w-md">
         <input
           type="number"
-          placeholder="عمرك (بالسنوات)"
+          placeholder={t.agePlaceholder}
           className="w-full p-3 rounded bg-gray-800 mb-4"
           value={age}
           onChange={(e) => setAge(e.target.value)}
         />
 
-        {renderInputGroup("🕐 مصاريفك اليومية التقريبية", dailyExpenses, setDailyExpenses, "ريال", "مصاريف")}
-        {renderInputGroup("☕ القهوة اليومية التقريبية", coffees, setCoffees, "أكواب", "قهوة")}
-        {renderInputGroup("🍔 الوجبات السريعة الأسبوعية التقريبية", fastFoods, setFastFoods, "وجبات", "وجبة")}
-        {renderInputGroup("📺 الاشتراكات الشهرية التقريبية", subscriptions, setSubscriptions, "ريال", "اشتراك")}
+        {renderInputGroup(t.dailyTitle, dailyExpenses, setDailyExpenses)}
+        {renderInputGroup(t.coffeeTitle, coffees, setCoffees)}
+        {renderInputGroup(t.fastFoodTitle, fastFoods, setFastFoods)}
+        {renderInputGroup(t.subsTitle, subscriptions, setSubscriptions)}
 
         <button
-          className="w-full p-3 mt-4 bg-green-600 rounded hover:bg-green-700"
           onClick={calculate}
+          className="w-full p-3 mt-4 bg-green-600 rounded hover:bg-green-700"
         >
-          احسب الآن
+          {t.calcBtn}
         </button>
 
         {result && (
-          <div ref={resultRef} className="bg-gray-800 p-4 rounded mt-6 text-center text-lg space-y-2">
-            <div>📊 <strong>المجموع:</strong> {result.total}</div>
-            <div>📆 <strong>سنوياً:</strong> {result.yearly}</div>
-            <div>📅 <strong>شهرياً:</strong> {result.monthly}</div>
+          <div className="bg-gray-800 p-4 rounded mt-6 text-center text-lg space-y-2">
+            <div>{t.resultTitle} {result.total.toLocaleString("en-US")} {t.label}</div>
+            <div>{t.yearly} {result.yearly.toLocaleString("en-US")} {t.label}</div>
+            <div>{t.monthly} {result.monthly.toLocaleString("en-US")} {t.label}</div>
           </div>
-        )}
-
-        {result && (
-          <button
-            onClick={handleShare}
-            className="w-full mt-4 p-3 bg-blue-600 rounded hover:bg-blue-700 transition"
-          >
-            📤 مشاركة النتيجة
-          </button>
         )}
       </div>
     </div>
