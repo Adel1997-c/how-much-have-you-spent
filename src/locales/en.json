@@ -1,0 +1,20 @@
+{
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "We value your privacy and explain our practices here.",
+    "dataCollection": "We collect minimal data necessary for operation.",
+    "cookies": "Cookies may be used to improve user experience.",
+    "thirdParty": "We do not share your data with third parties."
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "intro": "By using this site, you agree to the following terms.",
+    "acceptance": "You must agree to all terms to use this site.",
+    "usage": "Use this website responsibly and legally.",
+    "changes": "Terms may change, and continued use is acceptance."
+  },
+  "contact": {
+    "title": "Contact Us",
+    "emailLabel": "Email"
+  }
+}
