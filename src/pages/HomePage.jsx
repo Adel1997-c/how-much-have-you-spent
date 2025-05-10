@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { addDoc, collection } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
+import { collection, addDoc } from "firebase/firestore";
 
 const HomePage = () => {
   const [age, setAge] = useState("");
@@ -10,10 +11,9 @@ const HomePage = () => {
   const [subscriptions, setSubscriptions] = useState([0]);
   const [result, setResult] = useState(null);
   const resultRef = useRef(null);
+  const navigate = useNavigate();
 
-  const handleAdd = (setter, state) => {
-    setter([...state, 0]);
-  };
+  const handleAdd = (setter, state) => setter([...state, 0]);
 
   const handleRemove = (setter, state, index) => {
     if (state.length > 1) {
@@ -35,16 +35,15 @@ const HomePage = () => {
     const totalCoffee = coffees.reduce((a, b) => a + b, 0) * 8 * 365 * years;
     const totalFastFood = fastFoods.reduce((a, b) => a + b, 0) * 20 * 52 * years;
     const totalSubs = subscriptions.reduce((a, b) => a + b, 0) * 12 * years;
-
     const total = totalDaily + totalCoffee + totalFastFood + totalSubs;
     const yearly = total / years || 0;
     const monthly = yearly / 12 || 0;
 
     if (total > 0) {
       setResult({
-        total: total.toLocaleString("ar-EG") + " ريال",
-        yearly: yearly.toLocaleString("ar-EG") + " ريال",
-        monthly: monthly.toLocaleString("ar-EG") + " ريال",
+        total: total.toFixed(2),
+        yearly: yearly.toFixed(2),
+        monthly: monthly.toFixed(2),
       });
     } else {
       setResult(null);
@@ -52,31 +51,20 @@ const HomePage = () => {
   };
 
   const handleShare = async () => {
-    console.log("📤 Sharing initiated...");
-
-    if (!result) {
-      console.warn("⚠️ No result to share");
-      return;
-    }
+    if (!result) return;
 
     try {
       const docRef = await addDoc(collection(db, "results"), {
         result: {
-          total: parseFloat(result.total.replace(/[^\d.]/g, "")),
-          yearly: parseFloat(result.yearly.replace(/[^\d.]/g, "")),
-          monthly: parseFloat(result.monthly.replace(/[^\d.]/g, "")),
+          total: parseFloat(result.total),
+          yearly: parseFloat(result.yearly),
+          monthly: parseFloat(result.monthly),
         },
-        createdAt: new Date(),
       });
 
-      const shareUrl = `${window.location.origin}/result/${docRef.id}`;
-      console.log("✅ Share link:", shareUrl);
-
-      await navigator.clipboard.writeText(shareUrl);
-      alert("✅ تم نسخ الرابط للمشاركة:\n" + shareUrl);
-    } catch (err) {
-      console.error("❌ Error during sharing:", err);
-      alert("❌ حدث خطأ أثناء إنشاء الرابط.");
+      navigate(`/result/${docRef.id}`);
+    } catch (error) {
+      console.error("Error sharing result:", error);
     }
   };
 
@@ -111,9 +99,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center justify-center">
-      <h1 className="text-3xl font-bold mb-6 text-yellow-300">
-        احسب كم صرفت في حياتك
-      </h1>
+      <h1 className="text-3xl font-bold mb-6 text-yellow-300">احسب كم صرفت في حياتك</h1>
 
       <div className="w-full max-w-md text-right">
         <input
@@ -129,18 +115,15 @@ const HomePage = () => {
         {renderInputGroup("🍔 الوجبات السريعة الأسبوعية التقريبية", fastFoods, setFastFoods, "وجبات", "وجبة")}
         {renderInputGroup("📺 الاشتراكات الشهرية التقريبية", subscriptions, setSubscriptions, "ريال", "اشتراك")}
 
-        <button
-          className="w-full p-3 mt-4 bg-green-600 rounded hover:bg-green-700"
-          onClick={calculate}
-        >
+        <button className="w-full p-3 mt-4 bg-green-600 rounded hover:bg-green-700" onClick={calculate}>
           احسب الآن
         </button>
 
         {result && (
           <div ref={resultRef} className="bg-gray-800 p-4 rounded mt-6 text-center text-lg space-y-2">
-            <div>📊 <strong>المجموع:</strong> {result.total}</div>
-            <div>📆 <strong>سنوياً:</strong> {result.yearly}</div>
-            <div>📅 <strong>شهرياً:</strong> {result.monthly}</div>
+            <div>📊 <strong>المجموع:</strong> {parseFloat(result.total).toLocaleString("ar-EG")} ريال</div>
+            <div>📆 <strong>سنوياً:</strong> {parseFloat(result.yearly).toLocaleString("ar-EG")} ريال</div>
+            <div>📅 <strong>شهرياً:</strong> {parseFloat(result.monthly).toLocaleString("ar-EG")} ريال</div>
           </div>
         )}
 
