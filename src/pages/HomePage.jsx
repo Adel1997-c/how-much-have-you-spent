@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
-import html2canvas from 'html2canvas/dist/html2canvas.min.js';
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const [age, setAge] = useState("");
@@ -8,7 +10,7 @@ const HomePage = () => {
   const [fastFoods, setFastFoods] = useState([0]);
   const [subscriptions, setSubscriptions] = useState([0]);
   const [result, setResult] = useState(null);
-  const resultRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleAdd = (setter, state) => {
     setter([...state, 0]);
@@ -30,12 +32,10 @@ const HomePage = () => {
 
   const calculate = () => {
     const years = parseFloat(age || 0);
-
     const totalDaily = dailyExpenses.reduce((a, b) => a + b, 0) * 365 * years;
     const totalCoffee = coffees.reduce((a, b) => a + b, 0) * 8 * 365 * years;
     const totalFastFood = fastFoods.reduce((a, b) => a + b, 0) * 20 * 52 * years;
     const totalSubs = subscriptions.reduce((a, b) => a + b, 0) * 12 * years;
-
     const total = totalDaily + totalCoffee + totalFastFood + totalSubs;
     const yearly = total / years || 0;
     const monthly = yearly / 12 || 0;
@@ -52,15 +52,25 @@ const HomePage = () => {
   };
 
   const handleShare = async () => {
-    console.log("📸 Generating screenshot...");
-    console.log("🧪 Rebuild test");
+    if (!result) return;
 
-    if (!resultRef.current) return;
-    const canvas = await html2canvas(resultRef.current);
-    const link = document.createElement("a");
-    link.download = "spending-summary.png";
-    link.href = canvas.toDataURL();
-    link.click();
+    try {
+      const docRef = await addDoc(collection(db, "results"), {
+        result: {
+          total: parseFloat(result.total.replace(/[^\d.]/g, "")),
+          yearly: parseFloat(result.yearly.replace(/[^\d.]/g, "")),
+          monthly: parseFloat(result.monthly.replace(/[^\d.]/g, "")),
+        },
+        createdAt: new Date(),
+      });
+
+      const shareUrl = `${window.location.origin}/result/${docRef.id}`;
+      await navigator.clipboard.writeText(shareUrl);
+      alert("✅ تم نسخ الرابط للمشاركة:\n" + shareUrl);
+    } catch (err) {
+      console.error("Error sharing:", err);
+      alert("❌ حدث خطأ أثناء إنشاء الرابط.");
+    }
   };
 
   const renderInputGroup = (title, values, setter, unit, label) => (
@@ -120,7 +130,7 @@ const HomePage = () => {
         </button>
 
         {result && (
-          <div ref={resultRef} className="bg-gray-800 p-4 rounded mt-6 text-center text-lg space-y-2">
+          <div className="bg-gray-800 p-4 rounded mt-6 text-center text-lg space-y-2">
             <div>📊 <strong>المجموع:</strong> {result.total}</div>
             <div>📆 <strong>سنوياً:</strong> {result.yearly}</div>
             <div>📅 <strong>شهرياً:</strong> {result.monthly}</div>
