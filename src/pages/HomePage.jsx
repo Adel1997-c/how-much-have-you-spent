@@ -1,4 +1,3 @@
-// src/pages/HomePage.jsx
 import React, { useState } from "react";
 
 const HomePage = () => {
@@ -10,11 +9,11 @@ const HomePage = () => {
   const [result, setResult] = useState(null);
 
   const calculate = () => {
-    const years = parseFloat(age);
-    const spend = parseFloat(dailySpend) * 365 * years;
-    const coffeeCost = parseFloat(coffee) * 8 * 365 * years;
-    const fastFoodCost = parseFloat(fastFood) * 20 * 52 * years;
-    const subCost = parseFloat(subscriptions) * 30 * 12 * years;
+    const years = parseFloat(age || 0);
+    const spend = parseFloat(dailySpend || 0) * 365 * years;
+    const coffeeCost = parseFloat(coffee || 0) * 8 * 365 * years;
+    const fastFoodCost = parseFloat(fastFood || 0) * 20 * 52 * years;
+    const subCost = parseFloat(subscriptions || 0) * 30 * 12 * years;
 
     const total = spend + coffeeCost + fastFoodCost + subCost;
     setResult(total.toLocaleString("ar-EG") + " ريال");
@@ -30,15 +29,15 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-6">
-      <h1 className="text-3xl mb-6 font-bold text-center">
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-6">
+      <h1 className="text-3xl md:text-4xl mb-6 font-bold text-center text-yellow-400">
         احسب كم صرفت في حياتك؟
       </h1>
 
       <div className="w-full max-w-md space-y-4 text-right">
         <input
           type="number"
-          placeholder="عمرك"
+          placeholder="عمرك (بالسنوات)"
           className="w-full p-3 rounded bg-gray-800 text-white"
           value={age}
           onChange={(e) => setAge(e.target.value)}
@@ -52,7 +51,7 @@ const HomePage = () => {
         />
         <input
           type="number"
-          placeholder="كم كوب قهوة باليوم؟"
+          placeholder="كم كوب قهوة يوميًا؟"
           className="w-full p-3 rounded bg-gray-800 text-white"
           value={coffee}
           onChange={(e) => setCoffee(e.target.value)}
@@ -66,7 +65,7 @@ const HomePage = () => {
         />
         <input
           type="number"
-          placeholder="كم اشتراك شهري؟"
+          placeholder="كم اشتراك شهري (مثل نتفليكس)؟"
           className="w-full p-3 rounded bg-gray-800 text-white"
           value={subscriptions}
           onChange={(e) => setSubscriptions(e.target.value)}
@@ -77,21 +76,23 @@ const HomePage = () => {
             className="w-full p-3 bg-green-600 rounded hover:bg-green-700 transition"
             onClick={calculate}
           >
-            احسب كم صرفت؟
+            احسب الآن
           </button>
           <button
             className="w-full p-3 bg-red-600 rounded hover:bg-red-700 transition"
             onClick={reset}
           >
-            إعادة
+            إعادة تعيين
           </button>
         </div>
 
-        {result && (
-          <div className="mt-6 text-center text-2xl font-bold text-yellow-400 animate-bounce">
-            أنت صرفت تقريبًا: {result}
-          </div>
-        )}
+        <div className="mt-6 text-center text-2xl font-bold text-yellow-300">
+          {result ? (
+            <>أنت صرفت تقريبًا: {result}</>
+          ) : (
+            <>ابدأ بتعبئة البيانات لحساب مصاريفك!</>
+          )}
+        </div>
       </div>
     </div>
   );
