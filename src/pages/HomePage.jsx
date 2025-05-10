@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import html2canvas from "html2canvas";
 
 const HomePage = () => {
   const [age, setAge] = useState("");
@@ -53,6 +52,7 @@ const HomePage = () => {
 
   const handleShare = async () => {
     if (!resultRef.current) return;
+    const html2canvas = (await import("html2canvas")).default;
     const canvas = await html2canvas(resultRef.current);
     const link = document.createElement("a");
     link.download = "spending-summary.png";
