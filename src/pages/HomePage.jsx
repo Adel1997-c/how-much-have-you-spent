@@ -3,6 +3,30 @@ import { db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 
+const funnyFacts = [
+  "كان ممكن تشتري فيها 300 شاورما!",
+  "تقدر تعبي بنزين لمدة سنة كاملة!",
+  "هذه مصاريف تكفي تسافر لأوروبا مرتين!",
+  "لو وفرتها، كنت اشتريت آيفون كل سنة!",
+  "كان ممكن تسوي فيها عرس أسطوري!",
+  "كان ممكن تسكن في فندق 5 نجوم شهر كامل!",
+  "كان ممكن تفتح محل عصيرات!",
+  "هذه الفلوس تسويك مليونير في لعبة مونوبولي!",
+  "تقدر تشتري فيها 1000 كوب قهوة!",
+  "لو كل يوم ريال، كان معك 365 ريال بس!",
+  "هل كنت محتاج فعلاً كل هذه الأشياء؟",
+  "كان ممكن تسوي عملية زراعة شعر!",
+  "أنت رسمياً ملك الصرف!",
+  "تستاهل جائزة أكثر شخص صرف!",
+  "لو كل ريال وفّرته، كنت ارتحت نفسياً!",
+  "نصيحة: افتح دفتر توفير بسرعة!",
+  "كان ممكن تشتري ببسي لكل أهل الحارة!",
+  "تقدر تشتري فيها خروف سمين في العيد!",
+  "هذا الرقم يخوف! راجع حساباتك!",
+  "وين راحت كل هالفلوس؟!",
+  // Add up to 100 total...
+];
+
 const HomePage = () => {
   const [age, setAge] = useState("");
   const [dailyExpenses, setDailyExpenses] = useState([""]);
@@ -10,6 +34,7 @@ const HomePage = () => {
   const [fastFoods, setFastFoods] = useState([""]);
   const [subscriptions, setSubscriptions] = useState([""]);
   const [result, setResult] = useState(null);
+  const [funny, setFunny] = useState("");
 
   const handleAdd = (setter, state) => setter([...state, ""]);
 
@@ -29,39 +54,29 @@ const HomePage = () => {
 
   const calculate = () => {
     const years = parseFloat(age || 0);
-    const totalDaily = dailyExpenses.reduce((a, b) => a + (parseFloat(b) || 0), 0) * 365 * years;
-    const totalCoffee = coffees.reduce((a, b) => a + (parseFloat(b) || 0), 0) * 8 * 365 * years;
-    const totalFastFood = fastFoods.reduce((a, b) => a + (parseFloat(b) || 0), 0) * 20 * 52 * years;
-    const totalSubs = subscriptions.reduce((a, b) => a + (parseFloat(b) || 0), 0) * 12 * years;
+    const sum = (arr) =>
+      arr.reduce((a, b) => a + (parseFloat(b) || 0), 0);
 
-    const total = totalDaily + totalCoffee + totalFastFood + totalSubs;
+    const total =
+      sum(dailyExpenses) * 365 * years +
+      sum(coffees) * 8 * 365 * years +
+      sum(fastFoods) * 20 * 52 * years +
+      sum(subscriptions) * 12 * years;
+
     const yearly = total / years || 0;
     const monthly = yearly / 12 || 0;
 
     if (total > 0) {
-      setResult({ total, yearly, monthly });
+      const fact = funnyFacts[Math.floor(Math.random() * funnyFacts.length)];
+      setResult({
+        total: total.toLocaleString("ar-EG") + " ريال",
+        yearly: yearly.toLocaleString("ar-EG") + " ريال",
+        monthly: monthly.toLocaleString("ar-EG") + " ريال",
+      });
+      setFunny(fact);
     } else {
       setResult(null);
-    }
-  };
-
-  const handleShare = async () => {
-    if (!result) return;
-    const id = uuidv4();
-    try {
-      await setDoc(doc(db, "results", id), {
-        result: {
-          total: result.total,
-          yearly: result.yearly,
-          monthly: result.monthly,
-        },
-      });
-      const link = `${window.location.origin}/result/${id}`;
-      navigator.clipboard.writeText(link);
-      alert(`✅ تم نسخ الرابط للمشاركة:\n\n${link}`);
-    } catch (error) {
-      alert("❌ حدث خطأ أثناء الحفظ والمشاركة");
-      console.error(error);
+      setFunny("");
     }
   };
 
@@ -102,27 +117,23 @@ const HomePage = () => {
           onChange={(e) => setAge(e.target.value)}
         />
 
-        {renderInputGroup("🕐 مصاريفك اليومية التقريبية", dailyExpenses, setDailyExpenses, "ريال", "مصاريف")}
-        {renderInputGroup("☕ القهوة اليومية التقريبية", coffees, setCoffees, "أكواب", "قهوة")}
-        {renderInputGroup("🍔 الوجبات السريعة الأسبوعية التقريبية", fastFoods, setFastFoods, "وجبات", "وجبة")}
-        {renderInputGroup("📺 الاشتراكات الشهرية التقريبية", subscriptions, setSubscriptions, "ريال", "اشتراك")}
+        {renderInputGroup("🕐 مصاريفك اليومية", dailyExpenses, setDailyExpenses, "ريال", "مصاريف")}
+        {renderInputGroup("☕ عدد أكواب القهوة", coffees, setCoffees, "أكواب", "قهوة")}
+        {renderInputGroup("🍔 وجبات سريعة أسبوعياً", fastFoods, setFastFoods, "وجبات", "وجبة")}
+        {renderInputGroup("📺 الاشتراكات الشهرية", subscriptions, setSubscriptions, "ريال", "اشتراك")}
 
-        <button onClick={calculate} className="w-full p-3 mt-4 bg-green-600 rounded hover:bg-green-700">
-          احسب الآن
-        </button>
+        <button
+          className="w-full p-3 mt-4 bg-green-600 rounded hover:bg-green-700"
+          onClick={calculate}
+        >احسب الآن</button>
 
         {result && (
           <div className="bg-gray-800 p-4 rounded mt-6 text-center text-lg space-y-2">
-            <div>📊 <strong>المجموع:</strong> {result.total.toLocaleString("ar-EG")} ريال</div>
-            <div>📆 <strong>سنوياً:</strong> {result.yearly.toLocaleString("ar-EG")} ريال</div>
-            <div>📅 <strong>شهرياً:</strong> {result.monthly.toLocaleString("ar-EG")} ريال</div>
+            <div>📊 <strong>المجموع:</strong> {result.total}</div>
+            <div>📆 <strong>سنوياً:</strong> {result.yearly}</div>
+            <div>📅 <strong>شهرياً:</strong> {result.monthly}</div>
+            <div className="mt-2 text-yellow-400">😂 {funny}</div>
           </div>
-        )}
-
-        {result && (
-          <button onClick={handleShare} className="w-full mt-4 p-3 bg-blue-600 rounded hover:bg-blue-700 transition">
-            📤 مشاركة النتيجة
-          </button>
         )}
       </div>
     </div>
