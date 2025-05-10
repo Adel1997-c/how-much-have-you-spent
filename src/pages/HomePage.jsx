@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import html2canvas from "html2canvas/dist/html2canvas.min.js";
+import html2canvas from 'html2canvas';
 
 const HomePage = () => {
   const [age, setAge] = useState("");
